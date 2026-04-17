@@ -54,7 +54,7 @@ def update_file():
         return
 
     timestamp = datetime.now().strftime("%d.%m %H:%M")
-    sub_header = f"# Sub Update: {timestamp} | Total: {len(new_keys)}"
+    sub_header = f"#annouce: Sub Update: {timestamp} | Total: {len(new_keys)}"
     
     numbered_keys = []
     for i, key in enumerate(new_keys, 1):
