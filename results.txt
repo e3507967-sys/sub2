@@ -1,4 +1,7 @@
-#annouce: Sub Update: 17.04 13:45 | Total: 275
+#profile-title: ⚪WHITELIST ⚪
+#announce: Данная подписка собрана из других подписок,просьба не путать с авторскими!
+#profile-update-interval: 1
+
 vless://0388ef39-0883-4fb0-a93c-429da8cb45ab@82.165.179.153:443?encryption=none&fp=chrome&pbk=hF-EJNBXVYkS6mPSRRhLfgkuKxdciknzzx6q9smc0lg&security=reality&sid=ab&sni=www.google.com&type=tcp#[1] www.google.com
 vless://09b81314-7592-4ffb-9773-6351de8a7f74@217.16.28.63:443?encryption=none&security=reality&sni=eh.vk.com&fp=chrome&pbk=_oEGDYSSHrqmbHEUoHbp6YnmNTcXTVdWXcDmpi3JdH0&sid=aefbcf7fc283bd55&type=grpc&authority=&serviceName=UpdateService&mode=gun#[2] eh.vk.com
 vless://09b81314-7592-4ffb-9773-6351de8a7f74@217.16.28.63:8443?encryption=none&security=reality&sni=sso.passport.yandex.ru&fp=chrome&pbk=oWi1Dm7iMdTGeh-BI8rwKcnIaqeG2zF874NrSpPEPlI&sid=77cf23bd7f73c97a&type=grpc&authority=&serviceName=UpdateService&mode=gun#[3] sso.passport.yandex.ru
