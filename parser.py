@@ -3,9 +3,13 @@ import base64
 from datetime import datetime
 import os
 
+# Твои актуальные источники
 SOURCES = [
-    "https://example.com/subscribe1",
-    "https://raw.githubusercontent.com/user/repo/main/sub"
+    "https://sub.obbhod.online/premium",
+    "https://gitverse.ru/api/repos/bezlista/bezlista_mirror/raw/branch/master/conf1g.txt",
+    "https://raw.githubusercontent.com/Temnuk/naabuzil/refs/heads/main/whitelist",
+    "https://gist.githubusercontent.com/pythoneer-dev-q/49c33dd8d4e279611e30a8c6fd938230/raw/mobile.txt",
+    "https://mygala.ru/vpn/premium.php"
 ]
 
 def clean_vless(key):
@@ -35,11 +39,10 @@ def get_keys():
         except Exception as e:
             print(f"Ошибка на {url}: {e}")
 
-    # Основная магия: чистим каждый ключ от комментариев и удаляем дубликаты
     unique_keys = set()
     for k in raw_keys:
         cleaned = clean_vless(k)
-        if cleaned.startswith('vless://'): # Можно добавить vmess:// и т.д.
+        if cleaned.startswith('vless://'):
             unique_keys.add(cleaned)
             
     return sorted(list(unique_keys))
@@ -47,27 +50,30 @@ def get_keys():
 def update_file():
     new_keys = get_keys()
     if not new_keys:
-        print("Ключи не найдены. Выходим.")
+        print("Ключи не найдены.")
         return
 
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    # Добавляем в комментарий время и количество для инфы
-    header = f"// Last Update: {timestamp} | Unique keys: {len(new_keys)}\n"
-    output_content = header + "\n".join(new_keys)
+    timestamp = datetime.now().strftime("%d.%m %H:%M")
+    
+    # Делаем описание подписки через #
+    # В клиентах это отобразится как имя профиля
+    subscription_name = f"# Sub Update: {timestamp} | Total: {len(new_keys)}"
+    
+    output_content = f"{subscription_name}\n" + "\n".join(new_keys)
 
-    # Сравнение со старым файлом
     if os.path.exists("results.txt"):
         with open("results.txt", "r", encoding="utf-8") as f:
-            old_lines = f.readlines()
-            old_keys = [l.strip() for l in old_lines[1:] if l.strip()]
+            lines = f.readlines()
+            # Пропускаем первую строку (описание) при сравнении ключей
+            old_keys = [l.strip() for l in lines[1:] if l.strip()]
             
         if old_keys == new_keys:
-            print("Ничего нового. Скипаем коммит.")
+            print("База ключей не изменилась. Пропускаем.")
             return
 
     with open("results.txt", "w", encoding="utf-8") as f:
         f.write(output_content)
-    print(f"Готово! Сохранено {len(new_keys)} чистых ключей.")
+    print(f"Обновлено! Ключей: {len(new_keys)}")
 
 if __name__ == "__main__":
     update_file()
