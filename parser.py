@@ -1,9 +1,10 @@
 import requests
 import base64
-from datetime import datetime
+import urllib.parse
 import os
+from datetime import datetime
 
-# Твои актуальные источники
+# Твои источники
 SOURCES = [
     "https://sub.obbhod.online/premium",
     "https://gitverse.ru/api/repos/bezlista/bezlista_mirror/raw/branch/master/conf1g.txt",
@@ -13,7 +14,7 @@ SOURCES = [
 ]
 
 def clean_vless(key):
-    """Убирает всё после # и лишние пробелы"""
+    """Оставляет только основу ключа vless://... для удаления дублей"""
     key = key.strip()
     if '#' in key:
         return key.split('#')[0]
@@ -27,7 +28,7 @@ def get_keys():
             if resp.status_code == 200:
                 raw_data = resp.text.strip()
                 try:
-                    # Фикс padding для base64
+                    # Исправляем padding и декодируем Base64 подписки
                     missing_padding = len(raw_data) % 4
                     if missing_padding:
                         raw_data += '=' * (4 - missing_padding)
@@ -50,30 +51,7 @@ def get_keys():
 def update_file():
     new_keys = get_keys()
     if not new_keys:
-        print("Ключи не найдены.")
+        print("Ключи не найдены. Обновление отменено.")
         return
 
     timestamp = datetime.now().strftime("%d.%m %H:%M")
-    
-    # Делаем описание подписки через #
-    # В клиентах это отобразится как имя профиля
-    subscription_name = f"# Sub Update: {timestamp} | Total: {len(new_keys)}"
-    
-    output_content = f"{subscription_name}\n" + "\n".join(new_keys)
-
-    if os.path.exists("results.txt"):
-        with open("results.txt", "r", encoding="utf-8") as f:
-            lines = f.readlines()
-            # Пропускаем первую строку (описание) при сравнении ключей
-            old_keys = [l.strip() for l in lines[1:] if l.strip()]
-            
-        if old_keys == new_keys:
-            print("База ключей не изменилась. Пропускаем.")
-            return
-
-    with open("results.txt", "w", encoding="utf-8") as f:
-        f.write(output_content)
-    print(f"Обновлено! Ключей: {len(new_keys)}")
-
-if __name__ == "__main__":
-    update_file()
