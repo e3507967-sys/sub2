@@ -53,33 +53,36 @@ def update_file():
         print("Ключи не найдены. Обновление отменено.")
         return
 
-    timestamp = datetime.now().strftime("%d.%m %H:%M")
-    sub_header = f"#annouce: Sub Update: {timestamp} | Total: {len(new_keys)}"
+    # Формируем заголовок по твоему запросу
+    header = (
+        "#profile-title: ⚪WHITELIST ⚪\n"
+        "#announce: Данная подписка собрана из других подписок,просьба не путать с авторскими!\n"
+        "#profile-update-interval: 1\n"
+        "\n"  # Отступ
+    )
     
     numbered_keys = []
     for i, key in enumerate(new_keys, 1):
         try:
-            # Парсим параметры ссылки для поиска SNI
             parsed_url = urllib.parse.urlparse(key)
             params = urllib.parse.parse_qs(parsed_url.query)
-            # Если sni есть — берем его, если нет — твой текст
             sni_value = params.get('sni', ['Sni отсутствует!'])[0]
         except:
             sni_value = "Ошибка парсинга"
             
-        # Формируем ключ с новым названием
         numbered_keys.append(f"{key}#[{i}] {sni_value}")
     
-    output_content = f"{sub_header}\n" + "\n".join(numbered_keys)
+    output_content = header + "\n".join(numbered_keys)
 
-    # Проверка на изменения (сравниваем чистые ключи)
+    # Проверка на изменения
     if os.path.exists("results.txt"):
         with open("results.txt", "r", encoding="utf-8") as f:
             lines = f.readlines()
-            old_keys = [l.strip().split('#')[0] for l in lines[1:] if l.strip()]
+            # Пропускаем заголовок (первые 4 строки) при сравнении ключей
+            old_keys = [l.strip().split('#')[0] for l in lines[4:] if l.strip()]
             
         if old_keys == new_keys:
-            print("Изменений нет. Пропускаем коммит.")
+            print("Изменений в ключах нет. Пропускаем коммит.")
             return
 
     with open("results.txt", "w", encoding="utf-8") as f:
