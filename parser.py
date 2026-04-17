@@ -8,7 +8,6 @@ from datetime import datetime
 SOURCES = [
     "https://sub.obbhod.online/premium",
     "https://gitverse.ru/api/repos/bezlista/bezlista_mirror/raw/branch/master/conf1g.txt",
-    "https://raw.githubusercontent.com/Temnuk/naabuzil/refs/heads/main/whitelist",
     "https://gist.githubusercontent.com/pythoneer-dev-q/49c33dd8d4e279611e30a8c6fd938230/raw/mobile.txt",
     "https://mygala.ru/vpn/premium.php"
 ]
