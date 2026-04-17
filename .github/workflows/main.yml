@@ -1,0 +1,33 @@
+name: Update Subscriptions
+
+on:
+  schedule:
+    - cron: '*/10 * * * *' # Запуск каждые 10 минут
+  workflow_dispatch: # Позволяет запустить вручную кнопкой
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: ambassadors/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run parser
+        run: python parser.py
+
+      - name: Commit and Push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add results.txt
+          git commit -m "Update keys: $(date +'%Y-%m-%d %H:%M:%S')" || exit 0
+          git
+          push
