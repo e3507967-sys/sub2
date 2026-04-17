@@ -14,7 +14,7 @@ SOURCES = [
 ]
 
 def clean_vless(key):
-    """Оставляет только основу ключа vless://... для удаления дублей"""
+    """Оставляет только основу ключа для удаления дублей"""
     key = key.strip()
     if '#' in key:
         return key.split('#')[0]
@@ -28,7 +28,7 @@ def get_keys():
             if resp.status_code == 200:
                 raw_data = resp.text.strip()
                 try:
-                    # Исправляем padding и декодируем Base64 подписки
+                    # Декодируем, если это Base64 подписка
                     missing_padding = len(raw_data) % 4
                     if missing_padding:
                         raw_data += '=' * (4 - missing_padding)
@@ -55,3 +55,37 @@ def update_file():
         return
 
     timestamp = datetime.now().strftime("%d.%m %H:%M")
+    sub_header = f"# Sub Update: {timestamp} | Total: {len(new_keys)}"
+    
+    numbered_keys = []
+    for i, key in enumerate(new_keys, 1):
+        try:
+            # Парсим параметры ссылки для поиска SNI
+            parsed_url = urllib.parse.urlparse(key)
+            params = urllib.parse.parse_qs(parsed_url.query)
+            # Если sni есть — берем его, если нет — твой текст
+            sni_value = params.get('sni', ['Sni отсутствует!'])[0]
+        except:
+            sni_value = "Ошибка парсинга"
+            
+        # Формируем ключ с новым названием
+        numbered_keys.append(f"{key}#[{i}] {sni_value}")
+    
+    output_content = f"{sub_header}\n" + "\n".join(numbered_keys)
+
+    # Проверка на изменения (сравниваем чистые ключи)
+    if os.path.exists("results.txt"):
+        with open("results.txt", "r", encoding="utf-8") as f:
+            lines = f.readlines()
+            old_keys = [l.strip().split('#')[0] for l in lines[1:] if l.strip()]
+            
+        if old_keys == new_keys:
+            print("Изменений нет. Пропускаем коммит.")
+            return
+
+    with open("results.txt", "w", encoding="utf-8") as f:
+        f.write(output_content)
+    print(f"Обновлено! Собрано ключей: {len(new_keys)}")
+
+if __name__ == "__main__":
+    update_file()
