@@ -9,7 +9,8 @@ SOURCES = [
     "http://sub.obbhod.online/premium",
     "https://gitverse.ru/api/repos/bezlista/bezlista_mirror/raw/branch/master/conf1g.txt",
     "https://gist.githubusercontent.com/pythoneer-dev-q/49c33dd8d4e279611e30a8c6fd938230/raw/mobile.txt",
-    "https://raw.githubusercontent.com/btsk161/Freeinternet_byMygalaru.github.io/refs/heads/main/premium.txt"
+    "https://raw.githubusercontent.com/btsk161/Freeinternet_byMygalaru.github.io/refs/heads/main/premium.txt",
+    "https://raw.githubusercontent.com/prominbro/sub/refs/heads/main/212.txt"
 ]
 
 def clean_vless(key):
