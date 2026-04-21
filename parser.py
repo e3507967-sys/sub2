@@ -11,7 +11,8 @@ SOURCES = [
     "https://gist.githubusercontent.com/pythoneer-dev-q/49c33dd8d4e279611e30a8c6fd938230/raw/mobile.txt",
     "https://raw.githubusercontent.com/btsk161/Freeinternet_byMygalaru.github.io/refs/heads/main/premium.txt",
     "https://raw.githubusercontent.com/prominbro/sub/refs/heads/main/212.txt",
-    "https://accargame.cfd/sub/vvyXOgJw_dbFCJgn"
+    "https://accargame.cfd/sub/vvyXOgJw_dbFCJgn","
+    "https://mifa.world/vless"
 ]
 
 def clean_vless(key):
