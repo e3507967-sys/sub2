@@ -81,7 +81,7 @@ def update_file():
 
     header = (
         "#profile-title: ⚪WHITELIST ⚪\n"
-        "#announce: Данная подписка собирается из других, просьба не путать с авторскими!!
+        "#announce: Данная подписка собирается из других, просьба не путать с авторскими!!\n
         "#profile-update-interval: 1\n\n"
     )
     
