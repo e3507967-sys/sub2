@@ -2,7 +2,8 @@ import requests
 import base64
 import urllib.parse
 import os
-from datetime import datetime
+import ipaddress
+import socket
 
 # Твои источники
 SOURCES = [
@@ -10,87 +11,105 @@ SOURCES = [
     "https://gitverse.ru/api/repos/bezlista/bezlista_mirror/raw/branch/master/conf1g.txt",
     "https://gist.githubusercontent.com/pythoneer-dev-q/49c33dd8d4e279611e30a8c6fd938230/raw/mobile.txt",
     "https://raw.githubusercontent.com/btsk161/Freeinternet_byMygalaru.github.io/refs/heads/main/premium.txt",
-    "https://raw.githubusercontent.com/prominbro/sub/refs/heads/main/212.txt",
-    "https://accargame.cfd/sub/vvyXOgJw_dbFCJgn",
-    "https://mifa.world/vless"
-]
+    "https://accargame.cfd/sub/vvyXOgJw_dbFCJgn"
+    ]
 
-def clean_vless(key):
-    """Оставляет только основу ключа для удаления дублей"""
-    key = key.strip()
-    if '#' in key:
-        return key.split('#')[0]
-    return key
+def get_flag(code):
+    """Генерирует эмодзи флага из кода страны (например, RU -> 🇷🇺)"""
+    if not code or code == "??" or len(code) != 2: 
+        return "🏳️"
+    # Магия Unicode: превращаем буквы в символы региональных индикаторов
+    return chr(ord(code[0].upper()) + 127397) + chr(ord(code[1].upper()) + 127397)
+
+def get_geo_info(address):
+    """Резолвит IP, фильтрует локальный мусор и тянет страну"""
+    try:
+        # Пытаемся получить IP из домена
+        ip = socket.gethostbyname(address)
+        ip_obj = ipaddress.ip_address(ip)
+        
+        # Полная защита от 0.0.0.0, 127.0.0.1 и приватных подсетей (192.168.x.x)
+        if not ip_obj.is_global or ip_obj.is_unspecified:
+            return None, None
+
+        # Запрос к API (лимит 45/мин, для 500 конфигов хватит за глаза)
+        resp = requests.get(f"http://ip-api.com/json/{ip}?fields=status,countryCode", timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            if data.get('status') == 'success':
+                code = data.get('countryCode', '??')
+                return code, get_flag(code)
+    except:
+        pass
+    return "??", "🏳️"
 
 def get_keys():
     raw_keys = []
+    # Мобильный User-Agent, чтобы не палиться перед Cloudflare
+    headers = {'User-Agent': 'Mozilla/5.0 (Android 14; Mobile; rv:128.0) Gecko/128.0 Firefox/128.0'}
+    
     for url in SOURCES:
         try:
-            resp = requests.get(url, timeout=15)
+            resp = requests.get(url, timeout=15, headers=headers)
             if resp.status_code == 200:
-                raw_data = resp.text.strip()
+                data = resp.text.strip()
                 try:
-                    # Декодируем, если это Base64 подписка
-                    missing_padding = len(raw_data) % 4
-                    if missing_padding:
-                        raw_data += '=' * (4 - missing_padding)
-                    content = base64.b64decode(raw_data).decode('utf-8')
+                    # Чиним Base64 если нужно
+                    pad = len(data) % 4
+                    if pad: data += '=' * (4 - pad)
+                    content = base64.b64decode(data).decode('utf-8')
                 except:
-                    content = raw_data
-                
+                    content = data
                 raw_keys.extend(content.strip().split('\n'))
-        except Exception as e:
-            print(f"Ошибка на {url}: {e}")
+        except:
+            continue
 
-    unique_keys = set()
+    unique = set()
     for k in raw_keys:
-        cleaned = clean_vless(k)
-        if cleaned.startswith('vless://'):
-            unique_keys.add(cleaned)
-            
-    return sorted(list(unique_keys))
+        k = k.strip()
+        if k.startswith('vless://'):
+            # Отрезаем всё после #, чтобы убрать старые названия из источников
+            clean_link = k.split('#')[0]
+            unique.add(clean_link)
+    return sorted(list(unique))
 
 def update_file():
-    new_keys = get_keys()
-    if not new_keys:
-        print("Ключи не найдены. Обновление отменено.")
+    keys = get_keys()
+    if not keys:
+        print("Ключи не найдены.")
         return
 
-    # Формируем заголовок по твоему запросу
     header = (
         "#profile-title: ⚪WHITELIST ⚪\n"
-        "#announce: Данная подписка собрана из других подписок(подробнее в readme),просьба не путать с авторскими!\n"
-        "#profile-update-interval: 1\n"
-        "\n"  # Отступ
+        "#announce: Фильтр мусора: ON | Формат: [№] Страна | SNI\n"
+        "#profile-update-interval: 1\n\n"
     )
     
-    numbered_keys = []
-    for i, key in enumerate(new_keys, 1):
-        try:
-            parsed_url = urllib.parse.urlparse(key)
-            params = urllib.parse.parse_qs(parsed_url.query)
-            sni_value = params.get('sni', ['Sni отсутствует!'])[0]
-        except:
-            sni_value = "Ошибка парсинга"
-            
-        numbered_keys.append(f"{key}#[{i}] {sni_value}")
-    
-    output_content = header + "\n".join(numbered_keys)
+    final_configs = []
+    print(f"Парсим гео для {len(keys)} конфигов...")
 
-    # Проверка на изменения
-    if os.path.exists("results.txt"):
-        with open("results.txt", "r", encoding="utf-8") as f:
-            lines = f.readlines()
-            # Пропускаем заголовок (первые 4 строки) при сравнении ключей
-            old_keys = [l.strip().split('#')[0] for l in lines[4:] if l.strip()]
+    for i, key in enumerate(keys, 1):
+        try:
+            parsed = urllib.parse.urlparse(key)
+            code, flag = get_geo_info(parsed.hostname)
             
-        if old_keys == new_keys:
-            print("Изменений в ключах нет. Пропускаем коммит.")
-            return
+            # Если это 0.0.0.0 — просто выкидываем этот ключ
+            if code is None:
+                continue
+            
+            params = urllib.parse.parse_qs(parsed.query)
+            sni = params.get('sni', ['no-sni'])[0]
+            
+            # Тот самый формат: [33] RU🇷🇺 | SNI: pornhub.com
+            name = f"[{i}] {code}{flag} | SNI: {sni}"
+            final_configs.append(f"{key}#{name}")
+        except:
+            continue
 
     with open("results.txt", "w", encoding="utf-8") as f:
-        f.write(output_content)
-    print(f"Обновлено! Собрано ключей: {len(new_keys)}")
+        f.write(header + "\n".join(final_configs))
+    
+    print(f"Готово! Сохранено: {len(final_configs)}")
 
 if __name__ == "__main__":
     update_file()
