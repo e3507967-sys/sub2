@@ -4,7 +4,7 @@
 https://t.me/freeinternet_byMygalaru
 
 
-https://t.me/bezlista
+
 
 
 
